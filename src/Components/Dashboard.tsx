@@ -1,5 +1,5 @@
 import useMembers from "../Hooks/useMembers";
-import type { Member } from "../Hooks/useMembers";
+// import type { Member } from "../Hooks/useMembers";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../library/supabase";
 
@@ -103,7 +103,11 @@ function Dashboard({ session }: DashboardProps) {
     status: "Active" as const,
   };
   async function handleLogout() {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Error signing out:", err);
+    }
   }
 
   return (
