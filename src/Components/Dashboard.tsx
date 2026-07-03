@@ -178,11 +178,14 @@ function Dashboard({ session }: DashboardProps) {
                 </thead>
 
                 <tbody className="">
-                  {members.map((member, index) => (
-                    <tr key={index} className={`border-b border-[#1e1e1e]`}>
+                  {members.map((member) => (
+                    <tr
+                      key={member.id}
+                      className={`border-b border-[#1e1e1e] ${member.user_id === session.user.id ? "bg-[#fff8ee]" : ""}`}
+                    >
                       <td className="py-6 text-black font-medium">
                         {member.name}
-                        {member.name === "Francis Omotayo" && (
+                        {member.user_id === session.user.id && (
                           <span className="ml-2 text-[#a17d4a] text-xs">
                             (you)
                           </span>

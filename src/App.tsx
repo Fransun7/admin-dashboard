@@ -24,51 +24,93 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [showRegister, setShowRegister] = useState(false);
 
-  useEffect(() => {
-    async function checkUserRecord(currentSession: Session | null) {
-      if (!currentSession) {
-        setSession(null);
-        setLoading(false);
-        return;
-      }
+  // useEffect(() => {
+  //   async function checkUserRecord(currentSession: Session | null) {
+  //     if (!currentSession) {
+  //       setSession(null);
+  //       setLoading(false);
+  //       return;
+  //     }
 
-      try {
-        // Query the database to see if this user_id exists in your members table
-        const { data, error } = await supabase
-          .from("members")
-          .select("user_id")
-          .eq("user_id", currentSession.user.id)
-          .maybeSingle(); // Returns null safely instead of throwing an error if row is missing
+  //     try {
+  //       // Query the database to see if this user_id exists in your members table
+  //       const { data, error } = await supabase
+  //         .from("members")
+  //         .select("user_id")
+  //         .eq("user_id", currentSession.user.id)
+  //         .maybeSingle(); // Returns null safely instead of throwing an error if row is missing
 
-        if (error || !data) {
-          // 🚨 PROFILE ROW DELETED OR NOT FOUND! Force clear auth session.
-          console.warn(
-            "User auth exists, but database row is missing. Logging out...",
-          );
-          await supabase.auth.signOut();
-          setSession(null);
-        } else {
-          // Profile exists, all good!
-          setSession(currentSession);
-        }
-      } catch (err) {
-        console.error("Error verifying user registration track:", err);
-        setSession(null);
-      } finally {
-        setLoading(false);
-      }
+  //       if (error || !data) {
+  //         // 🚨 PROFILE ROW DELETED OR NOT FOUND! Force clear auth session.
+  //         console.warn(
+  //           "User auth exists, but database row is missing. Logging out...",
+  //         );
+  //         await supabase.auth.signOut();
+  //         setSession(null);
+  //       } else {
+  //         // Profile exists, all good!
+  //         setSession(currentSession);
+  //       }
+  //     } catch (err) {
+  //       console.error("Error verifying user registration track:", err);
+  //       setSession(null);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   // Check if user is already logged in
+  //   supabase.auth.getSession().then(({ data: { session } }) => {
+  //     checkUserRecord(session);
+  //   });
+
+  //   // Listen for login/logout changes
+  //   const {
+  //     data: { subscription },
+  //   } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     checkUserRecord(session);
+  //   });
+
+  //   return () => subscription.unsubscribe();
+  // }, []);
+
+  async function checkUserRecord(currentSession: Session | null) {
+    if (!currentSession) {
+      setSession(null);
+      setLoading(false);
+      return;
     }
 
-    // Check if user is already logged in
+    try {
+      const { data, error } = await supabase
+        .from("members")
+        .select("user_id")
+        .eq("user_id", currentSession.user.id)
+        .maybeSingle();
+
+      if (error || !data) {
+        await supabase.auth.signOut();
+        setSession(null);
+      } else {
+        setSession(currentSession);
+      }
+    } catch (err) {
+      console.error("Error verifying user:", err);
+      setSession(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       checkUserRecord(session);
     });
 
-    // Listen for login/logout changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      checkUserRecord(session);
     });
 
     return () => subscription.unsubscribe();
